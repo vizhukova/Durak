@@ -1,0 +1,24 @@
+{
+  "name": "untitled",
+  "version": "0.0.0",
+  "authors": [
+    "vizhukova <veronikazhukova@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "requirejs": "~2.1.20",
+    "jquery": "~2.1.4",
+    "text": "requirejs-text#~2.0.14"
+  }
+}

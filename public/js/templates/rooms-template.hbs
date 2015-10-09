@@ -1,0 +1,48 @@
+<div>
+    <div class="rooms-content">
+        {{#if isRoom}}
+            <div class="rooms">
+                {{#each rooms}}
+                    <button type="button" class="btn btn-default room">
+                        <div>{{this.players.length}}/{{this.count}}</div>
+                        <div class="name">{{this.name}}</div>
+                    </button>
+                {{/each}}
+            </div>
+        {{else}}
+            <div class="message">No rooms yet. You could create a new one.</div>
+        {{/if}}
+        <button class="btn btn-primary center-block btn-lg" data-toggle="modal" data-target="#makeRoom">
+            Create new room
+        </button>
+
+        <div class="modal fade" id="makeRoom" tabindex="-1" role="dialog" aria-labelledby="makeRoomLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="makeRoomLabel">Create new room</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table>
+                            <tr>
+                                <td><span>Count of players</span></td>
+                                <td><input type="text" class="create-room-input count"/></td>
+                                <td><span class="prompt">(from 2 to 6)</span></td>
+                            </tr>
+                            <tr>
+                                <td><span>Name of the room</span></td>
+                                <td><input type="text" class="create-room-input name"/></td>
+                                <td><span class="prompt">(less then 30)</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary create-room-button">Create</button>
+                        <button type="button" class="btn btn-default close-room-button" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,48 @@
+.rooms {
+    text-align: center;
+    margin: 50px auto;
+}
+
+.room {
+    width: 150px;
+    height: 150px;
+}
+
+.message {
+    margin: 30px auto;
+    text-align: center;
+    font-size: x-large;
+    color: #4A80C5;
+}
+
+.create-room-input {
+    width: 240px;
+    border-radius: 5px;
+}
+
+.wrong {
+    color: red;
+}
+
+div.field div.control-panel button.btn.btn-primary.center-block.btn-lg {
+    background-image: linear-gradient(to bottom,#348460 0,#85AF0B 100%);
+}
+
+div.field div.control-panel button.btn.btn-primary.center-block.btn-lg:hover {
+    background-color: #7DA727;
+}
+
+div.field div.control-panel button.btn.btn-primary.center-block.btn-lg:focus {
+    background-color: #7DA727;
+}
+
+.hide {
+    display: none;
+}
+
+.table {
+    background-color: #0F4E0F;
+}
+
+
+
