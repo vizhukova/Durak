@@ -1,2 +1,0 @@
-# Durak
-game
