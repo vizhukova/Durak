@@ -45,7 +45,6 @@ define([
             },
 
             enterRoom: function() {
-                console.log(this.view.enterRoom)
 
                 var fieldController = new FieldController({parent: '#content', roomData: {name: this.view.enterRoom}});
                 fieldController.on('change:newPlayer', this.redrawRooms.bind(this));
@@ -65,7 +64,7 @@ define([
                         console.log(self.view.data)
                         var fieldController = new FieldController({parent: '#content', roomData: self.view.data});
                         fieldController.on('change:newPlayer', self.redrawRooms.bind(self));
-                        fieldController.on('change:cancelEnter', this.redrawRooms.bind(this));
+                        fieldController.on('change:cancelEnter', self.redrawRooms.bind(self));
                     },
 
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -76,7 +75,6 @@ define([
             },
 
             redrawRooms: function() {
-                console.log('change:redrawRooms controller')
                 setTimeout(function() {
                     this.makeView();
                 }.bind(this), 200)

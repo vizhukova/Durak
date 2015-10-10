@@ -24,15 +24,15 @@
     color: red;
 }
 
-div.field div.control-panel button.btn.btn-primary.center-block.btn-lg {
+div.field div.control-panel button.btn.btn-primary.btn-lg {
     background-image: linear-gradient(to bottom,#348460 0,#85AF0B 100%);
 }
 
-div.field div.control-panel button.btn.btn-primary.center-block.btn-lg:hover {
+div.field div.control-panel button.btn.btn-primary.btn-lg:hover {
     background-color: #7DA727;
 }
 
-div.field div.control-panel button.btn.btn-primary.center-block.btn-lg:focus {
+div.field div.control-panel button.btn.btn-primary.btn-lg:focus {
     background-color: #7DA727;
 }
 
@@ -44,5 +44,25 @@ div.field div.control-panel button.btn.btn-primary.center-block.btn-lg:focus {
     background-color: #0F4E0F;
 }
 
+#waiter {
+    font-size: 35px;
+}
 
+div.control-panel {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+}
+
+div.container {
+    text-align: center;
+}
+
+
+.loading {
+    color: #CCBC46;
+    font-size: xx-large;
+    font-family: cursive;
+    margin: 85px;
+}
 
