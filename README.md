@@ -1,5 +1,5 @@
 # Durak
 simple card game
 
-after dowload in file Durak do npm install. In file public do bower install.
+After dowload in folder Durak do npm install. In folder public do bower install.
 
