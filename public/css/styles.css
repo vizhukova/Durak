@@ -69,3 +69,25 @@ div.container {
     margin: 85px;
 }
 
+div.field div.control-panel button.btn.btn-primary.btn-lg.take {
+    background-image: linear-gradient(to bottom,#9C3423 0,#AF6D0B 100%);
+}
+
+div.field div.control-panel button.btn.btn-primary.btn-lg.take:hover {
+    background-color: #A74F27;
+}
+div.field div.control-panel button.btn.btn-primary.btn-lg.take:focus {
+    background-color: #A74F27;
+
+}div.field div.control-panel button.btn.btn-primary.btn-lg.pass {
+     background-image: linear-gradient(to bottom,#B7FF2A 0,#AF9A0B 100%);
+}
+
+div.field div.control-panel button.btn.btn-primary.btn-lg.pass:hover {
+    background-color: #B7FF2A;
+}
+div.field div.control-panel button.btn.btn-primary.btn-lg.pass:focus {
+    background-color: #B7FF2A;
+}
+
+

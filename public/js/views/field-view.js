@@ -11,6 +11,7 @@ define([
             autoRender: true,
             template: template,
             data: {},
+            isYourTurn: false,
 
             initialize: function (obj) {
                 this.obj = obj;
@@ -21,6 +22,10 @@ define([
 
             remove: function() {
                 $('.field').unbind('click');
+            },
+
+            setMessage: function(message) {
+                $('#message').html(message);
             },
 
             render: function (obj) {
@@ -36,15 +41,22 @@ define([
                 }
 
                 else if( $(event.target).hasClass('trump') ) {
-                    if(!this.cards) return;
+                    if(!this.cardsLength) return;
                    this.trigger('change:showTrump')
                 }
 
-                else if( $(event.target).hasClass('enter-game-button') ) {
+                else if(this.isYourTurn && $(event.target).hasClass('take') ) {
+                    this.trigger('change:takeCards')
+                }
+
+                else if(this.isYourTurn && $(event.target).hasClass('pass') ) {
+                    this.trigger('change:passAttack')
+                }
+
+                else if($(event.target).hasClass('enter-game-button') ) {
                     var name = $(event.target).parent().prev().find('.player-name-input')[0].value;
 
                     if(name == '' || name.length > 30) {
-                        console.log($(event.target).parent().prev().find('.prompt'));
                         $(event.target).parent().prev().find('.prompt').addClass('wrong');
                         return;
                     } else {
@@ -86,11 +98,19 @@ define([
                 this.context = this.tableCanvas.get(0).getContext('2d');
                 this.imageObj = new Image();
                 this.imageObj.src = "./images/cards.png";
+            },
 
-                /*this.tableCanvas.on('click', function(evt) {
+            setYourTurnTrue: function() {
+                this.isYourTurn = true;
+                this.tableCanvas.on('click', function(evt) {
                     var rect = this.getMousePos(this.tableCanvas, evt)
                     this.isMouseOnCard(rect)
-                }.bind(this));*/
+                }.bind(this));
+            },
+
+            setYourTurnFalse: function() {
+                this.tableCanvas.unbind('click')
+                this.isYourTurn = false;
             },
 
 
@@ -104,11 +124,36 @@ define([
 
 
             isMouseOnCard: function(rect) {
-                console.log(rect)
-                if(rect.x > (800 / this.cards.length) && rect.x < (800 / this.cards.length + this.cards.length * 78.77)
+                if(rect.x > (800 / this.cardsLength) && rect.x < (800 / this.cardsLength + this.cardsLength * 78.77)
                 && rect.y > (560 - 114.4) && rect.y < 560) {
                  console.log('YOU ARE IN')
+                    this.idAttackCard =  Math.round( (rect.x - (800 / this.cardsLength) ) / 78.77 );
+                    console.log('idCard = ' + this.idAttackCard)
+                    if(this.idAttackCard > this.cardsLength - 1) return;
+                    this.trigger('change:chooseCard')
                 }
+            },
+
+            renderDefend: function(data) {
+                var x = 78.77, y = 114.4;
+                var dx = 800 / this.cardsLength;
+                this.context.drawImage(this.imageObj, x * data.card.value, y * data.card.kind, x, y
+                    , dx + x/2 * data.deckAttackingLength, 280, x, y);
+            },
+
+            renderAttack: function(data) {
+                var x = 78.77, y = 114.4;
+                var dx = 800 / this.cardsLength;
+                this.context.drawImage(this.imageObj, x * data.card.value, y * data.card.kind, x, y
+                    , dx + x/2 * data.deckAttackingLength, 280 - y/2, x, y);
+            },
+
+            clearDeck: function() {
+                this.context.clearRect(800 / this.cardsLength, 560 - 114.4, 78.77 * this.cardsLength, 114.4);
+            },
+
+            clearTable: function() {
+                this.context.clearRect(0, 0, 800, 560);
             },
 
             renderCards: function(cards) {///cards {value, kind, isTrump}///
@@ -124,9 +169,11 @@ define([
                 //diamond = 1      club = 0
                 //heart = 2        spade = 3
                 ///////////////////////////////////////////////////////////////////
-                this.cards = cards;
+
+                this.cardsLength = cards.length;
                 var x = 78.77, y = 114.4;
                 var dx = 800 / cards.length;
+
                 for(var i = 0; i < cards.length; i++) {
                     this.context.drawImage(this.imageObj, x * cards[i].value, y * cards[i].kind
                         , x, y, dx, 560 - y, x, y);
@@ -135,8 +182,6 @@ define([
             },
 
             renderTrump: function(data) {
-                console.log('trump')
-                console.log(data)
                 var x = 78.77, y = 114.4;
                 var dx = 800/2;
                 this.context.drawImage(this.imageObj, x * data.value, y * data.kind
@@ -177,7 +222,6 @@ define([
                     }
 
                     else if(i == 2) {
-                        console.log(1)
                         dx = (-800)/2 + 10 * data[i].deckLength / 2;
                         this.context.rotate(60 * Math.PI / 180)
                         rotateBack += 60;
@@ -205,7 +249,6 @@ define([
                         rotateBack += 30;
 
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            console.log('2')
                             this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, 700, x, y);
                             dx += 10;
                         }
