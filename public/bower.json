@@ -1,0 +1,28 @@
+{
+  "name": "index",
+  "version": "0.0.0",
+  "homepage": "https://github.com/vizhukova/Durak",
+  "authors": [
+    "vizhukova <veronikazhukova@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.5",
+    "requirejs": "~2.1.20",
+    "socket.io-client": "~1.3.7",
+    "text": "~2.0.14",
+    "handlebars": "~4.0.3",
+    "lodash": "~3.10.1",
+    "backbone": "~1.2.3"
+  }
+}

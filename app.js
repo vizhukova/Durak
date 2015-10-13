@@ -22,6 +22,10 @@ GLOBAL.DB = {
 GLOBAL.DB.restore();
 GLOBAL.DB.rooms = GLOBAL.DB.rooms || [];
 
+_.each(GLOBAL.DB.rooms, function(room) {
+    room.players = [];
+})
+
 console.log(GLOBAL.DB)
 
 

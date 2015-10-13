@@ -59,10 +59,13 @@ div.container {
 }
 
 
-.loading {
+.loading, #message {
     color: #CCBC46;
     font-size: xx-large;
     font-family: cursive;
+}
+
+.loading {
     margin: 85px;
 }
 

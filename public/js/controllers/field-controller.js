@@ -14,19 +14,18 @@ define([
                 this.socket = io();
 
                 this.socket.on('beginGame', function(data) {
-                    if(data.nameRoom == this.obj.roomData.name) {
+                    if(this.obj && data.nameRoom == this.obj.roomData.name) {
                         this.view.beginGame();
                     }
                 }.bind(this))
 
                 this.socket.on('getCards', this.getCards.bind(this))
-                //this.socket.on('playerLeaved', function(data){this.playerLeaved(data)}.bind(this))
+                this.socket.on('playerLeaved', function(data){this.playerLeaved(data)}.bind(this))
 
                 this.view = new FieldView(obj)
                 this.initializeView(this.view)
 
                 window.onbeforeunload = function (event) {
-                    alert(event.target.URL);return false;
                     this.removePlayer();
                 }.bind(this)
 
@@ -36,16 +35,21 @@ define([
                 view.on('change:newPlayer', this.newPlayer.bind(this))
                 view.on('change:cancelEnter', this.cancelEnter.bind(this))
                 view.on('change:removePlayer', this.removePlayer.bind(this))
+                view.on('change:showTrump', this.renderTrump.bind(this))
             },
 
             playerLeaved: function(data) {
                 if(this.obj.roomData.name == data.roomName) {
+                    this.view.remove();
                     this.view = new FieldView(this.obj)
-                    this.initializeView(this.view).bind(this)
+                    this.initializeView.bind(this)(this.view)
+                    this.view.beforeHideModal(this.obj.playerName)
                 }
             },
 
-            getCards: function() {
+            getCards: function(roomName) {
+                if(!this.obj || roomName != this.obj.roomData.name) return;
+
                 var self = this;
                 $.ajax({
                     type: "GET",
@@ -53,29 +57,23 @@ define([
 
                     success: function(data) {
                         console.log(data)
-                        self.view.renderCards(data);
+                        self.gameData = data;
+                        self.view.renderCards(data.playerDeck);
+
                     },
 
                     error: function(XMLHttpRequest, textStatus, errorThrown) {
                         alert("ERROR: " + JSON.parse(XMLHttpRequest.responseText).message)
                     }
 
-                }).then(function() {
-                    $.ajax({
-                        type: "GET",
-                        url: window.config.apiUrl + 'opponents/' + self.idPlayer,
-
-                        success: function(data) {
-                            console.log(data)
-                            self.view.renderOpponentsCards(data);
-                        },
-
-                        error: function(XMLHttpRequest, textStatus, errorThrown) {
-                            alert("ERROR: " + JSON.parse(XMLHttpRequest.responseText).message)
-                        }
-
-                    })
+                }).then(function(data) {
+                    self.view.renderOpponentsCards(data.opponents);
                 })
+            },
+
+            renderTrump: function() {
+                console.log('trump')
+              this.view.renderTrump(this.gameData.trump)
             },
 
             cancelEnter: function() {
@@ -84,8 +82,10 @@ define([
 
             removePlayer: function() {
                 console.log('remove')
+                this.socket.removeListener('playerLeaved')
                 this.socket.emit('removePlayer', {playerId: this.idPlayer, roomName: this.view.obj.roomData.name})
                 this.socket.emit('emitRedrawRoom');
+                this.obj = null;
             },
 
             newPlayer: function() {
