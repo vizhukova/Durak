@@ -96,6 +96,8 @@ define([
             setCardsOnCanvas: function() {
                 this.tableCanvas = $('#table');
                 this.context = this.tableCanvas.get(0).getContext('2d');
+                this.context.font="20px Cursive";
+                this.context.fillStyle = "#CBCC21";
                 this.imageObj = new Image();
                 this.imageObj.src = "./images/cards.png";
             },
@@ -113,7 +115,6 @@ define([
                 this.isYourTurn = false;
             },
 
-
             getMousePos: function(canvas, evt) {
                 var rect = this.tableCanvas.get(0).getBoundingClientRect();
                 return {
@@ -122,12 +123,11 @@ define([
                 };
             },
 
-
             isMouseOnCard: function(rect) {
                 if(rect.x > (800 / this.cardsLength) && rect.x < (800 / this.cardsLength + this.cardsLength * 78.77)
                 && rect.y > (560 - 114.4) && rect.y < 560) {
                  console.log('YOU ARE IN')
-                    this.idAttackCard =  Math.round( (rect.x - (800 / this.cardsLength) ) / 78.77 );
+                    this.idAttackCard =  Math.floor( (rect.x - (800 / this.cardsLength) ) / 78.77 );
                     console.log('idCard = ' + this.idAttackCard)
                     if(this.idAttackCard > this.cardsLength - 1) return;
                     this.trigger('change:chooseCard')
@@ -150,6 +150,7 @@ define([
 
             clearDeck: function() {
                 this.context.clearRect(800 / this.cardsLength, 560 - 114.4, 78.77 * this.cardsLength, 114.4);
+                this.context.clearRect(0, 0, 150, 560);
             },
 
             clearTable: function() {
@@ -201,55 +202,66 @@ define([
                     }
 
                     else if(i == 0) {
-                        dx =  2 * (800 / data[i].deckLength)
-                        this.context.rotate(90 * Math.PI / 180)
-                        rotateBack += 90;
+                        dx =  2 * (800 / 6) + data[i].deckLength*10/2
 
+                        this.context.rotate(-90 * Math.PI / 180)
+                        this.context.fillText(data[i].name, -dx - data[i].name.length * 10 / 2 / 2, 130);
+
+                        rotateBack -= 90;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -100, x, y);
+                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, -dx, 0, x, y);
                             dx += 10;
                         }
                     }
                     else if(i == 1) {
-                        dx = -50;
+                        dx = 50;
                         this.context.rotate(30 * Math.PI / 180)
-                        rotateBack += 30;
+                        this.context.fillText(data[i].name,-dx + - data[i].name.length * 10 / 2, 180);
 
+                        rotateBack += 30;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -200, x, y);
+                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, -dx, 50, x, y);
                             dx += 10;
                         }
                     }
 
                     else if(i == 2) {
-                        dx = (-800)/2 + 10 * data[i].deckLength / 2;
-                        this.context.rotate(60 * Math.PI / 180)
-                        rotateBack += 60;
+                        dx = 800/2;
 
+                        this.context.rotate(60 * Math.PI / 180)
+                        this.context.fillText(data[i].name,dx + data[i].name.length * 10 / 2 - data[i].name.length * 10, 125);
+
+                        rotateBack += 60;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -100, x, y);
+                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, 0, x, y);
                             dx -= 10;
                         }
                     }
 
                     else if(i == 3) {
-                        dx = -490 - 10 * data[i].deckLength / 2;
-                        this.context.rotate(60 * Math.PI / 180)
-                        rotateBack += 60;
+                        dx = 400 - 10 * data[i].deckLength / 2;
 
+                        this.context.rotate(60 * Math.PI / 180)
+                        this.context.fillText(data[i].name,dx + 10 * data[i].deckLength - data[i].name.length * 10 / 2
+                            , -510);
+
+                        rotateBack += 60;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, 500, x, y);
+                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -640, x, y);
                             dx += 10;
                         }
                     }
 
                     else if(i == 4) {
-                        dx = -360 - 10 * data[i].deckLength / 2;
-                        this.context.rotate(30 * Math.PI / 180)
-                        rotateBack += 30;
+                        dx = 560/2 - 10 * data[i].deckLength;
 
+                        this.context.rotate(30 * Math.PI / 180)
+                        this.context.fillText(data[i].name, dx + 10 * data[i].deckLength - data[i].name.length * 10 / 2
+                            , -800 + y + 20);
+
+                        rotateBack += 30;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, 700, x, y);
+                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -800, x, y);
                             dx += 10;
                         }
                     }

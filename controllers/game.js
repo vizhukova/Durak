@@ -50,7 +50,6 @@ module.exports = function (app, io) {
             }
 
             GLOBAL.DB.save();
-            io.emit('getCards', room.name)
             io.emit('turnToAttack', {playerId: room.players[room.idAttackPlayer]._id,
                 playerName: room.players[room.idAttackPlayer].name, roomName: room.name})
         });
@@ -175,10 +174,10 @@ module.exports = function (app, io) {
             _.find(GLOBAL.DB.rooms, function(room) {
                 if(room.name == data.roomName) {
 
-                    var defender = room.players[ (room.idAttackPlayer + 1) > room.players.length - 1 ? 0
-                        : room.idAttackPlayer + 1]
+                    var idDefender = (room.idAttackPlayer + 1) > room.players.length - 1 ? 0 : room.idAttackPlayer + 1
+                    room.idAttackPlayer = (idDefender + 1) > room.players.length - 1 ? 0 : idDefender + 1
 
-                    defender.deck = defender.deck.concat(room.deckAttacking)
+                    room.players[idDefender].deck = room.players[idDefender].deck.concat(room.deckAttacking)
                     room.deckAttacking = [];
                     /////////////Fill decks of players//////////////////////////////
                     for(var i = 0; i < room.players.length; i++) {

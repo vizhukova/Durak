@@ -19,7 +19,7 @@ define([
                 this.socket.on('getCards', this.getCards.bind(this))
                 this.socket.on('playerLeaved', function(data){this.playerLeaved(data)}.bind(this))
                 this.socket.on('beginGame', function(data) {
-
+                    console.log('beginGame')
                     this.socket.on('turnToAttack', function(data) {this.turnToAttack(data)}.bind(this));
                     this.socket.on('turnToDefend', function(data) {this.turnToDefend(data)}.bind(this));
                     this.socket.on('attackCard', function(data) {this.attackCard(data)}.bind(this));
@@ -28,6 +28,7 @@ define([
 
                     if(this.obj && data.nameRoom == this.obj.roomData.name) {
                         this.view.beginGame();
+                        this.getCards(data.nameRoom)
                     }
                 }.bind(this))
 
