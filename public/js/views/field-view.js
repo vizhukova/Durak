@@ -167,7 +167,7 @@ define([
             ////////////////////////////clear some places of canvas////////////////////////////
             clearDeck: function() {
                 var dx = this.cardsLength == 1 ? 800/2 : 800 / this.cardsLength
-                this.context.clearRect(dx, 560 - this.y - 5, this.x * this.cardsLength, this.y);
+                this.context.clearRect(dx, 560 - this.y, this.x * this.cardsLength, this.y);
                 this.context.clearRect(0, 0, 150, 560);
                 this.context.clearRect(800-150, 0, 800, 560);
             },
