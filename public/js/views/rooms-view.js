@@ -32,13 +32,14 @@ define([
                     return;
                 }
 
+                ////////////////////////////enter room////////////////////////////
                 else if( $(event.target).hasClass('room') || $(event.target).parent().hasClass('room') ) {
                     var element;
 
                     if($(event.target).parent().hasClass('room')) {
-                        element =  $(event.target).parent();
+                        element =  $(event.target).parent();//label on button
                     } else {
-                        element =  $(event.target);
+                        element =  $(event.target);//button
                     }
 
                     this.enterRoom = element.find('.name').html();
@@ -47,6 +48,7 @@ define([
                     return;
                 }
 
+                ////////////////////////////create new room////////////////////////////
                 else if( $(event.target).hasClass('create-room-button') ) {
                     var arrInput = $('.create-room-input')
                     for(var item = 0; item < arrInput.length; item++) {

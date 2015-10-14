@@ -23,6 +23,7 @@ define([
             },
 
             makeView: function() {
+                ////////////////////////////get all rooms////////////////////////////
                 $.ajax({
                     type: "GET",
                     url: window.config.apiUrl + 'rooms',
@@ -61,7 +62,6 @@ define([
                     contentType: 'application/json',
 
                     success: function(data) {
-                        console.log(self.view.data)
                         var fieldController = new FieldController({parent: '#content', roomData: self.view.data});
                         fieldController.on('change:newPlayer', self.redrawRooms.bind(self));
                         fieldController.on('change:cancelEnter', self.redrawRooms.bind(self));

@@ -19,12 +19,12 @@ define([
                 this.socket.on('getCards', this.getCards.bind(this))
                 this.socket.on('playerLeaved', function(data){this.playerLeaved(data)}.bind(this))
                 this.socket.on('beginGame', function(data) {
-                    console.log('beginGame')
                     this.socket.on('turnToAttack', function(data) {this.turnToAttack(data)}.bind(this));
                     this.socket.on('turnToDefend', function(data) {this.turnToDefend(data)}.bind(this));
                     this.socket.on('attackCard', function(data) {this.attackCard(data)}.bind(this));
                     this.socket.on('defendCard', function(data) {this.defendCard(data)}.bind(this));
-                    this.socket.on('clearTable', this.clearTable.bind(this));
+                    this.socket.on('clearTable', function(data) {this.clearTable(data)}.bind(this));
+                    this.socket.on('EndOfTheGame', function(data) {this.endOfTheGame(data)}.bind(this));
 
                     if(this.obj && data.nameRoom == this.obj.roomData.name) {
                         this.view.beginGame();
@@ -38,46 +38,48 @@ define([
 
             },
 
+            ////////////////////////////shows defend card ////////////////////////////
             defendCard: function(data) {
-            console.log('defendCard')
-            if(data.roomName != this.obj.roomData.name) return;
-            if(data.playerId == this.idPlayer) {
+                if(data.roomName != this.obj.roomData.name) return;
+                if(data.playerId == this.idPlayer) {
                 this.view.setYourTurnFalse();
             }
-            this.isDefender = false;
-            this.view.clearDeck();
-            this.view.renderDefend({deckAttackingLength: data.deckAttackingLength, card: data.card});
-            this.getCards(data.roomName);
+                this.isDefender = false;
+                this.view.clearDeck();
+                this.view.renderDefend({deckAttackingLength: data.deckAttackingLength, card: data.card});
+                this.getCards(data.roomName)
             },
 
+            ////////////////////////////shows attack card ////////////////////////////
             attackCard: function(data) {
-                console.log('attackCard')
                 if(data.roomName != this.obj.roomData.name) return;
                 if(data.playerId == this.idPlayer) {
                     this.view.setYourTurnFalse();
                 }
                 this.view.clearDeck();
                 this.view.renderAttack({deckAttackingLength: data.deckAttackingLength, card: data.card});
-                this.getCards(data.roomName);
+                this.getCards(data.roomName)
             },
 
+            ////////////////////////////shows who is attacker and let make an attack////////////////////////////
             turnToAttack: function(data) {
-                console.log('turnTo Attack')
                 if(data.roomName != this.obj.roomData.name) return;
+
                 if(data.playerId == this.idPlayer) {
                     this.view.setMessage("Your turn");
                     this.view.setYourTurnTrue();
                     this.isDefender = false;
                 } else {
                     this.view.setMessage('player "' + data.playerName + '" move...')
+                    this.view.setYourTurnFalse();
                 }
             },
 
+            ////////////////////////////shows who is defender and let make defense////////////////////////////
             turnToDefend: function(data) {
-                console.log('turnToDefend')
                 if(data.roomName != this.obj.roomData.name) return;
-                this.isDefender = true;
                 if(data.playerId == this.idPlayer) {
+                    this.isDefender = true;
                     this.view.setMessage("Your turn to defend");
                     this.view.setYourTurnTrue();
                 } else {
@@ -95,17 +97,19 @@ define([
                 view.on('change:takeCards', this.takeCards.bind(this));
             },
 
+            ////////////////////////////when defender push 'take' cards////////////////////////////
             takeCards: function() {
-                console.log('takeCards')
                 if(!this.isDefender) return;
                 this.socket.emit('takeCards', {roomName: this.obj.roomData.name})
             },
 
+            ////////////////////////////when attacker push 'pass' attack ////////////////////////////
             passAttack:function() {
-                console.log('passAttack')
                 this.socket.emit('passAttack', {roomName: this.obj.roomData.name})
+                this.getCards()
             },
 
+            ////////////////////////////when some player leaves room ////////////////////////////
             playerLeaved: function(data) {
                 if(this.obj.roomData.name == data.roomName) {
                     this.view.setYourTurnTrue("");
@@ -113,16 +117,11 @@ define([
                     this.view = new FieldView(this.obj)
                     this.initializeView.bind(this)(this.view)
                     this.view.beforeHideModal(this.obj.playerName)
-
-                    this.socket.removeListener('turnToAttack')
-                    this.socket.removeListener('turnToDefend')
-                    this.socket.removeListener('attackCard')
-                    this.socket.removeListener('defendCard')
-                    this.socket.removeListener('getCards')
-                    this.socket.removeListener('clearTable')
+                    this.removeSocketListeners();
                 }
             },
 
+            ////////////////////////////get cards by id player ////////////////////////////
             getCards: function(roomName) {
                 if(!this.obj || roomName != this.obj.roomData.name) return;
 
@@ -132,7 +131,6 @@ define([
                     url: window.config.apiUrl + 'players/' + self.idPlayer,
 
                     success: function(data) {
-                        console.log(data)
                         self.gameData = data;
                         self.view.renderCards(data.playerDeck);
 
@@ -144,6 +142,7 @@ define([
 
                 }).then(function(data) {
                     self.view.renderOpponentsCards(data.opponents);
+                    self.view.renderDeck({deckLength: data.deckLength, trump: data.trump})
                 })
             },
 
@@ -151,33 +150,58 @@ define([
               this.view.renderTrump(this.gameData.trump)
             },
 
+            /////////////////////////when player push on modal window 'cancel' registration /////////////////////////
             cancelEnter: function() {
                 this.trigger('change:cancelEnter')
             },
 
             removePlayer: function() {
-                console.log('remove')
+                this.removeSocketListeners();
                 this.socket.removeListener('playerLeaved')
-                this.socket.removeListener('getCards')
                 this.socket.removeListener('beginGame')
-                this.socket.removeListener('turnToAttack')
-                this.socket.removeListener('attackCard')
-                this.socket.removeListener('turnToDefend')
-                this.socket.removeListener('defendCard')
-                this.socket.removeListener('clearTable')
                 this.socket.emit('removePlayer', {playerId: this.idPlayer, roomName: this.view.obj.roomData.name})
                 this.socket.emit('emitRedrawRoom');
                 this.obj = null;
             },
 
+            ////////////////////////when attacker or defender chose card for attack or defense ////////////////////////
             chooseCard: function() {
                 if(this.isDefender) {
+                    var self = this;
+                    var data = {roomName: this.view.obj.roomData.name, idCard: this.view.idAttackCard};
                     this.socket.emit('defendCard',{roomName: this.view.obj.roomData.name, idCard: this.view.idAttackCard})
                 } else {
                 this.socket.emit('attackCard',{roomName: this.view.obj.roomData.name, idCard: this.view.idAttackCard})
                 }
             },
 
+            removeSocketListeners: function() {
+                this.socket.removeListener('turnToAttack')
+                this.socket.removeListener('turnToDefend')
+                this.socket.removeListener('attackCard')
+                this.socket.removeListener('defendCard')
+                this.socket.removeListener('getCards')
+                this.socket.removeListener('clearTable')
+                this.socket.removeListener('EndOfTheGame')
+            },
+
+            ////////////////////////////when server send 'EndOfTheGame'////////////////////////////
+            endOfTheGame: function(data) { //idPlayer roomName
+                if(this.obj.roomData.name == data.roomName) {
+                    if (data.player._id == this.idPlayer) {
+                        this.view.setMessage("You lose")
+                    } else {
+                        this.view.setMessage('player "' + data.player.name + '" lose')
+                    }
+
+                    this.view.setYourTurnFalse();
+                    this.removeSocketListeners();
+                    this.socket.removeListener('EndOfTheGame')
+                    this.socket.removeListener('playerLeaved')
+                }
+            },
+
+            ////////////////////////////register new player in the room////////////////////////////
             newPlayer: function() {
                 var self = this;
                 $.ajax({
@@ -216,8 +240,11 @@ define([
                 this.trigger('change:newPlayer')
             },
 
-            clearTable: function() {
-                this.view.clearTable();
+            ////////////////////////////clear context in canvas////////////////////////////
+            clearTable: function(data) {
+                if(this.obj.roomData.name == data.roomName) {
+                    this.view.clearTable();
+                }
             }
         })
         return FieldController;

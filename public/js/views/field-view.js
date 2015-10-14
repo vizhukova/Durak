@@ -12,6 +12,8 @@ define([
             template: template,
             data: {},
             isYourTurn: false,
+            x: 78.77,//width of card
+            y: 114.4,//height of card
 
             initialize: function (obj) {
                 this.obj = obj;
@@ -24,6 +26,7 @@ define([
                 $('.field').unbind('click');
             },
 
+            ////////////////////////////shows message in heading////////////////////////////
             setMessage: function(message) {
                 $('#message').html(message);
             },
@@ -35,24 +38,29 @@ define([
             },
 
             onClick: function(event) {
+                ////////////////////////////when player push button 'Exit'////////////////////////////
                 if( $(event.target).hasClass('exit') ) {
                     this.hideTable();
                     this.trigger("change:removePlayer");
                 }
 
+                ////////////////////////////when player push button 'Trump'////////////////////////////
                 else if( $(event.target).hasClass('trump') ) {
                     if(!this.cardsLength) return;
                    this.trigger('change:showTrump')
                 }
 
+                ////////////////////////////when player push button 'Take'////////////////////////////
                 else if(this.isYourTurn && $(event.target).hasClass('take') ) {
                     this.trigger('change:takeCards')
                 }
 
+                ////////////////////////////when player push button 'Pass'////////////////////////////
                 else if(this.isYourTurn && $(event.target).hasClass('pass') ) {
                     this.trigger('change:passAttack')
                 }
 
+                ////////////////////////////when player push button 'Begin' in modal window////////////////////////////
                 else if($(event.target).hasClass('enter-game-button') ) {
                     var name = $(event.target).parent().prev().find('.player-name-input')[0].value;
 
@@ -64,11 +72,13 @@ define([
                     }
                 }
 
+                ////////////////////////////when player push button 'Cancel' in modal window////////////////////////////
                 else if( $(event.target).hasClass('cancel') ) {
                     this.trigger("change:cancelEnter");
                 }
             },
 
+            ////////////////////////////sets options before start game////////////////////////////
             beforeHideModal: function(name) {
                 this.hideModal();
                 $(this.obj.parent).addClass('not-redraw-rooms')
@@ -76,10 +86,10 @@ define([
                 if( $('.control-panel').hasClass('hide') )  $('.control-panel').removeClass('hide')
 
                 this.obj.playerName = name;
-
                 this.trigger("change:newPlayer");
             },
 
+            ////////////////////////////hides game field////////////////////////////
             hideTable: function() {
                 $('#content').removeClass('not-redraw-rooms');
                 setTimeout(function() {
@@ -93,6 +103,7 @@ define([
                 this.setCardsOnCanvas();
             },
 
+            ////////////////////////////sets options for canvas////////////////////////////
             setCardsOnCanvas: function() {
                 this.tableCanvas = $('#table');
                 this.context = this.tableCanvas.get(0).getContext('2d');
@@ -102,6 +113,7 @@ define([
                 this.imageObj.src = "./images/cards.png";
             },
 
+            /////////////give access to attacker or defender to use control elements ( buttons and cards)/////////////
             setYourTurnTrue: function() {
                 this.isYourTurn = true;
                 this.tableCanvas.on('click', function(evt) {
@@ -110,11 +122,13 @@ define([
                 }.bind(this));
             },
 
+            ////////////takes away access attacker or defender to use control elements ( buttons and cards)////////////
             setYourTurnFalse: function() {
                 this.tableCanvas.unbind('click')
                 this.isYourTurn = false;
             },
 
+            ////////////////////////////takes position on canvas////////////////////////////
             getMousePos: function(canvas, evt) {
                 var rect = this.tableCanvas.get(0).getBoundingClientRect();
                 return {
@@ -123,40 +137,47 @@ define([
                 };
             },
 
+            ////////////////////////////check if mouse click on the card////////////////////////////
             isMouseOnCard: function(rect) {
-                if(rect.x > (800 / this.cardsLength) && rect.x < (800 / this.cardsLength + this.cardsLength * 78.77)
+                var dx = this.cardsLength == 1 ? 800 / 2 : 800 / this.cardsLength
+                var delta = this.cardsLength > 9 ? ( this.cardsLength > 18 ? this.x / 3 : this.x / 2) : this.x
+
+                if(rect.x > dx && rect.x < (dx + this.cardsLength * delta)
                 && rect.y > (560 - 114.4) && rect.y < 560) {
-                 console.log('YOU ARE IN')
-                    this.idAttackCard =  Math.floor( (rect.x - (800 / this.cardsLength) ) / 78.77 );
-                    console.log('idCard = ' + this.idAttackCard)
+                    this.idAttackCard =  this.cardsLength == 1 ? 0 : Math.floor( (rect.x - (dx) ) / delta );
                     if(this.idAttackCard > this.cardsLength - 1) return;
                     this.trigger('change:chooseCard')
                 }
             },
 
+            ////////////////////////////render defend card////////////////////////////
             renderDefend: function(data) {
-                var x = 78.77, y = 114.4;
-                var dx = 800 / this.cardsLength;
-                this.context.drawImage(this.imageObj, x * data.card.value, y * data.card.kind, x, y
-                    , dx + x/2 * data.deckAttackingLength, 280, x, y);
+                var dx = 800 / 6 + data.deckAttackingLength*15;;
+                this.context.drawImage(this.imageObj, this.x * data.card.value, this.y * data.card.kind, this.x, this.y
+                    , dx + this.x/2, 280, this.x, this.y);
             },
 
+            ////////////////////////////render attack card////////////////////////////
             renderAttack: function(data) {
-                var x = 78.77, y = 114.4;
-                var dx = 800 / this.cardsLength;
-                this.context.drawImage(this.imageObj, x * data.card.value, y * data.card.kind, x, y
-                    , dx + x/2 * data.deckAttackingLength, 280 - y/2, x, y);
+                var dx = 800 / 6  + data.deckAttackingLength*15;
+                this.context.drawImage(this.imageObj, this.x * data.card.value, this.y * data.card.kind, this.x, this.y
+                    , dx + this.x/2, 280 - this.y/2, this.x, this.y);
             },
 
+            ////////////////////////////clear some places of canvas////////////////////////////
             clearDeck: function() {
-                this.context.clearRect(800 / this.cardsLength, 560 - 114.4, 78.77 * this.cardsLength, 114.4);
+                var dx = this.cardsLength == 1 ? 800/2 : 800 / this.cardsLength
+                this.context.clearRect(dx, 560 - this.y - 5, this.x * this.cardsLength, this.y);
                 this.context.clearRect(0, 0, 150, 560);
+                this.context.clearRect(800-150, 0, 800, 560);
             },
 
+            ////////////////////////////clear full canvas////////////////////////////
             clearTable: function() {
                 this.context.clearRect(0, 0, 800, 560);
             },
 
+            ////////////////////////////render player cards////////////////////////////
             renderCards: function(cards) {///cards {value, kind, isTrump}///
                 ///////////////////////////////////////////////////////////////////
                 // value:
@@ -172,25 +193,35 @@ define([
                 ///////////////////////////////////////////////////////////////////
 
                 this.cardsLength = cards.length;
-                var x = 78.77, y = 114.4;
-                var dx = 800 / cards.length;
+                var dx = 800 / cards.length == 800 ? 800 / 2 : 800 / cards.length;
+                var delta = cards.length > 9 ? ( cards.length > 18 ? this.x / 3 : this.x / 2) : this.x
 
-                for(var i = 0; i < cards.length; i++) {
-                    this.context.drawImage(this.imageObj, x * cards[i].value, y * cards[i].kind
-                        , x, y, dx, 560 - y, x, y);
-                    dx += x;
+                for(var i = 0; cards[i] && i < cards.length; i++) {
+                    this.context.drawImage(this.imageObj, this.x * cards[i].value, this.y * cards[i].kind
+                        , this.x, this.y, dx, 560 - this.y, this.x, this.y);
+                    dx += delta;
                 }
             },
 
             renderTrump: function(data) {
-                var x = 78.77, y = 114.4;
                 var dx = 800/2;
-                this.context.drawImage(this.imageObj, x * data.value, y * data.kind
-                    , x, y, dx, 560/2 - y, x, y);
+                this.context.drawImage(this.imageObj, this.x * data.value, this.y * data.kind
+                    , this.x, this.y, 550, 120, this.x, this.y);
+            },
+
+            renderDeck: function(data) {
+                if(data.deckLength == 0) return;
+                var dx = 230;
+                this.renderTrump(data.trump)
+                this.context.rotate(-90 * Math.PI / 180)
+                for(var i = 0; i < data.deckLength - 1; i++) {
+                    this.context.drawImage(this.imageObj, this.x*2, this.y*4,  this.x, this.y + 12, -dx, 590 - this.y/2, this.x, this.y);
+                    dx += 3;
+                }
+                this.context.rotate(90 * Math.PI / 180)
             },
 
             renderOpponentsCards: function(data) {
-                var x = 78.77, y = 114.4;
                 var dx;
                 var rotateBack = 0;
 
@@ -202,14 +233,15 @@ define([
                     }
 
                     else if(i == 0) {
-                        dx =  2 * (800 / 6) + data[i].deckLength*10/2
+                        dx =  300;
 
                         this.context.rotate(-90 * Math.PI / 180)
                         this.context.fillText(data[i].name, -dx - data[i].name.length * 10 / 2 / 2, 130);
 
                         rotateBack -= 90;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, -dx, 0, x, y);
+                            this.context.drawImage(this.imageObj, this.x*2, this.y*4,  this.x, this.y + 12, -dx, 0
+                                , this.x, this.y);
                             dx += 10;
                         }
                     }
@@ -220,7 +252,7 @@ define([
 
                         rotateBack += 30;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, -dx, 50, x, y);
+                            this.context.drawImage(this.imageObj, this.x*2, this.y*4,  this.x, this.y + 12, -dx, 50, this.x, this.y);
                             dx += 10;
                         }
                     }
@@ -233,13 +265,13 @@ define([
 
                         rotateBack += 60;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, 0, x, y);
+                            this.context.drawImage(this.imageObj, this.x*2, this.y*4,  this.x, this.y + 12, dx, 0, this.x, this.y);
                             dx -= 10;
                         }
                     }
 
                     else if(i == 3) {
-                        dx = 400 - 10 * data[i].deckLength / 2;
+                        dx = 370;
 
                         this.context.rotate(60 * Math.PI / 180)
                         this.context.fillText(data[i].name,dx + 10 * data[i].deckLength - data[i].name.length * 10 / 2
@@ -247,21 +279,21 @@ define([
 
                         rotateBack += 60;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -640, x, y);
+                            this.context.drawImage(this.imageObj, this.x*2, this.y*4,  this.x, this.y + 12, dx, -640, this.x, this.y);
                             dx += 10;
                         }
                     }
 
                     else if(i == 4) {
-                        dx = 560/2 - 10 * data[i].deckLength;
+                        dx = 560/2 - 60;
 
                         this.context.rotate(30 * Math.PI / 180)
                         this.context.fillText(data[i].name, dx + 10 * data[i].deckLength - data[i].name.length * 10 / 2
-                            , -800 + y + 20);
+                            , -800 + this.y + 20);
 
                         rotateBack += 30;
                         for(var j = 0; j < data[i].deckLength; j++) {
-                            this.context.drawImage(this.imageObj, x*2, y*4,  x, y + 12, dx, -800, x, y);
+                            this.context.drawImage(this.imageObj, this.x*2, this.y*4,  this.x, this.y + 12, dx, -800, this.x, this.y);
                             dx += 10;
                         }
                     }

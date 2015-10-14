@@ -56,14 +56,5 @@ module.exports = function Deck() {
         this.trump = this.makeTrump();
         this.makeDeck();
         this.shuffleDeck();
-        /*
-        console.log('//////////////////////////')
-        console.log(this.trump)
-        console.log('//////////////////////////')
-        console.log(this.deck[0])
-        console.log(this.deck.length)
-        console.log(this.deck)
-        */
-
     }
 }

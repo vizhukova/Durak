@@ -19,8 +19,9 @@ module.exports = function (app, io) {
             room.deck = new Deck();
             room.deckAttacking = [];
             room.deck.run();
+            room.finishedPlayers = [];
 
-            /////////Set all players first 6 cards//////////////////////
+            ////////////////////////////Set all players first 6 cards////////////////////////////
             for(var i = 0; i < room.players.length; i++) {
                 room.players[i].deck = [];
                 for(var j = 0; j < 6; j++) {
@@ -31,7 +32,7 @@ module.exports = function (app, io) {
             var card;
             var iPlayer;
 
-            ////////////find the less trump in players deck/////////////////////
+            ////////////////////////////find the less trump in players deck////////////////////////////
             for(var i = 0; i < room.players.length; i++) {
                 for(var j = 0; j < 6; j++) {
                     if(room.players[i].deck[j].isTrump) {
@@ -54,12 +55,17 @@ module.exports = function (app, io) {
                 playerName: room.players[room.idAttackPlayer].name, roomName: room.name})
         });
 
+        ////////////////////////////when the player defends////////////////////////////
         socket.on('defendCard', function(data) {
             _.find(GLOBAL.DB.rooms, function(room) {
                 if(room.name == data.roomName) {
+
+                    if(room.deckAttacking.length % 2 == 0) return;
                     var idDefender = (room.idAttackPlayer + 1 > room.players.length - 1) ? 0 : room.idAttackPlayer + 1
                     var attackCard = room.deckAttacking[room.deckAttacking.length - 1]
                     var defendCard = room.players[idDefender].deck[data.idCard]
+
+                    if(data.idCard == undefined || room.players[idDefender].deck[data.idCard] == undefined) return;
 
                     if(attackCard.isTrump) {
                         if(attackCard.isTrump != defendCard.isTrump || (defendCard.value != 0   // 0 - is Ace
@@ -88,11 +94,20 @@ module.exports = function (app, io) {
             });
         });
 
+        ////////////////////////////when the player attacks////////////////////////////
         socket.on('attackCard', function(data) {
             _.find(GLOBAL.DB.rooms, function(room) {
                 if(room.name == data.roomName) {
 
-                    ////////////check is the card with such value in deckAttacking///////////////
+                    if(data.idCard == undefined || room.players[room.idAttackPlayer].deck[data.idCard] == undefined) return;
+
+                    if(room.deckAttacking.length % 2 == 1) return;//if there where an attack already
+
+                    var idDefender = (room.idAttackPlayer + 1)  > room.players.length - 1 ? 0 : room.idAttackPlayer + 1
+
+                    if(room.players[idDefender].deck.length == 0) return;//you can't attack if defender has not cards
+
+                    ////////////check if there is card with such value in deckAttacking///////////////
                     if(room.deckAttacking.length > 0) {
                         var attackCard = _.find(room.deckAttacking, function(card) {
                             return card.value == room.players[room.idAttackPlayer].deck[data.idCard].value;
@@ -116,6 +131,7 @@ module.exports = function (app, io) {
             });
         });
 
+        ////////////////////////////removing player ////////////////////////////
         socket.on('removePlayer', function(data) {
 
             _.find(GLOBAL.DB.rooms, function(room) {
@@ -138,66 +154,81 @@ module.exports = function (app, io) {
             io.emit('emitRedrawRoom')
     });
 
+        ////////////////////////////when attacker push 'pass' ////////////////////////////
         socket.on('passAttack', function(data) {
             _.find(GLOBAL.DB.rooms, function(room) {
                 if(room.name == data.roomName) {
 
-                    if(room.deckAttacking.length == 0) {//nobody move yet
+                    if(room.deckAttacking.length < 2) {//nobody defend yet
                         return;
                     }
-
+                    io.emit('clearTable', {roomName: data.roomName})
                     room.deckAttacking = [];
                     room.idAttackPlayer = (room.idAttackPlayer + 1) > room.players.length - 1 ? 0 : room.idAttackPlayer + 1;
 
-                    /////////////Fill decks of players//////////////////////////////
-                    for(var i = 0; i < room.players.length; i++) {
-                        while(room.players[i].deck.length < 6) {
-                            if(room.deck.length == 0) {
-                                io.emit('getCards', room.name)
-                                io.emit('turnToAttack', {playerId: room.players[room.idAttackPlayer]._id,
-                                    playerName: room.players[room.idAttackPlayer].name, roomName: room.name})
-                                return;
-                            }
-                            room.players[i].deck.push(room.deck.deck.pop());
-                        }
-                    }
-                    /////////////////////////////////////////////////////////////////
-                    io.emit('clearTable')
-                    io.emit('getCards', room.name)
-                    io.emit('turnToAttack', {playerId: room.players[room.idAttackPlayer]._id,
-                        playerName: room.players[room.idAttackPlayer].name, roomName: room.name})
+                    ////////////////////////////Fill decks of players ////////////////////////////
+                    fillDecksOfPlayers(room)
+
+                    if(!room.players[room.idAttackPlayer]) return;
+                    ////////////////////////////////////////////////////////////////////////////
+                    setTimeout(function() {
+                        io.emit('getCards', room.name)
+                        io.emit('turnToAttack', {playerId: room.players[room.idAttackPlayer]._id,
+                            playerName: room.players[room.idAttackPlayer].name, roomName: room.name})}, 100)
                 }
             })
         });
 
+        ////////////////////////////when defender takes cards ////////////////////////////
         socket.on('takeCards', function(data) {
             _.find(GLOBAL.DB.rooms, function(room) {
                 if(room.name == data.roomName) {
-
+                    io.emit('clearTable', {roomName: data.roomName})
                     var idDefender = (room.idAttackPlayer + 1) > room.players.length - 1 ? 0 : room.idAttackPlayer + 1
                     room.idAttackPlayer = (idDefender + 1) > room.players.length - 1 ? 0 : idDefender + 1
 
                     room.players[idDefender].deck = room.players[idDefender].deck.concat(room.deckAttacking)
                     room.deckAttacking = [];
-                    /////////////Fill decks of players//////////////////////////////
-                    for(var i = 0; i < room.players.length; i++) {
-                        while(room.players[i].deck.length < 6) {
-                            if(room.deck.length == 0) {
-                                break;
-                            }
-                            room.players[i].deck.push(room.deck.deck.pop());
-                        }
-                    }
-                    /////////////////////////////////////////////////////////////////
-                    io.emit('clearTable')
-                    io.emit('getCards', room.name)
+                    ////////////////////////////Fill decks of players ////////////////////////////
+                    fillDecksOfPlayers(room)
+
+                    if(!room.players[room.idAttackPlayer]) return;
+                    /////////////////////////////////////////////////////////////////////////////
+                    if(!room.players[room.idAttackPlayer]) return;
+
+                    setTimeout(function() {io.emit('getCards', room.name)
                     io.emit('turnToAttack', {playerId: room.players[room.idAttackPlayer]._id,
                         playerName: room.players[room.idAttackPlayer].name, roomName: room.name})
+                    }, 100)
                 }
             })
         });
-    });
 
+        function fillDecksOfPlayers(room) {
+
+            for(var i = 0; i < room.players.length; i++) {
+                while(room.players[i].deck.length < 6) {
+                    if(room.deck.deck.length == 0) {
+
+                        if(!room.players[i].deck[0] || room.players[i].deck.length == 0) {
+                            room.players.splice(i, 1);
+                        }
+                        if(room.players.length == 1) {///somebody loose
+                            io.emit('EndOfTheGame', {player: {name: room.players[0].name, _id: room.players[0]._id}
+                                , roomName: room.name})
+                        }
+
+                        if(room.players.length == 0 ) {// people finished at the same time
+                            io.emit('EndOfTheGame', {roomName: room.name})
+                        }
+                        break;
+                    }
+                    room.players[i].deck.push(room.deck.deck.pop());
+                }
+            }
+        }
+
+    });
 
     app.get('/deck', function (req, res) {
         res.send(GLOBAL.DB.deck)
@@ -236,18 +267,25 @@ module.exports = function (app, io) {
             for(var i = 0; i < item.players.length; i++) {
                 if(item.players[i]._id == req.params.id) {
                     result.trump = item.deck.trump;
+                    result.deckLength = item.deck.deck.length;
                     for(var j = 0; j < item.players.length; j++) {
                         if(item.players[j]._id == req.params.id) {
                             result.playerDeck = item.players[j].deck;
-                        } else {
-                            result.opponents.push({deckLength: item.players[j].deck.length, name: item.players[j].name})
+
+                            for(var k = j + 1; item.players[k] && k < item.players.length; k++) {
+                                result.opponents.push({deckLength: item.players[k].deck.length, name: item.players[k].name})
+                            }
+                            for(var k = 0; k < j; k++) {
+                                result.opponents.push({deckLength: item.players[k].deck.length, name: item.players[k].name})
+                            }
                         }
                     }
                 }
             }
         })
         res.send(result)
-     })
+     });
+
 
     app.get('/rooms', function (req, res) {
         res.send(GLOBAL.DB.rooms)
@@ -291,3 +329,4 @@ module.exports = function (app, io) {
         res.status(200).send({id: id})
     })
 }
+
